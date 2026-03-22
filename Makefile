@@ -10,7 +10,7 @@ DATADIR = data
 
 SOURCES = $(wildcard $(SRCDIR)/*.c)
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-TARGET = $(BINDIR)/customer_processor
+TARGET = $(BINDIR)/customer_processor  # Убедитесь, что здесь customer_processor
 
 .PHONY: all clean dirs test docs
 
