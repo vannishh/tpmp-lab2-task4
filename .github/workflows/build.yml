@@ -1,0 +1,100 @@
+name: Build and Test Customer Processor
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install build tools
+      run: sudo apt-get update && sudo apt-get install -y gcc make
+    
+    - name: Show project structure
+      run: |
+        echo "Project structure:"
+        ls -la
+        echo ""
+        echo "Source files:"
+        ls -la src/
+        echo ""
+        echo "Header files:"
+        ls -la include/
+    
+    - name: Build project
+      run: make
+    
+    - name: Verify build artifacts
+      run: |
+        echo "Build artifacts:"
+        ls -la bin/
+        file bin/customer_processor
+    
+    - name: Run tests
+      run: |
+        chmod +x run_tests.sh
+        ./run_tests.sh
+    
+    - name: Check output files
+      run: |
+        echo "Checking output files..."
+        if [ -f "data/customers.txt" ]; then
+          echo "✓ Input file created"
+          echo "First few lines of input:"
+          head -5 data/customers.txt
+        else
+          echo "✗ Input file not created"
+          exit 1
+        fi
+        
+        if [ -f "data/brest_customers.txt" ]; then
+          echo "✓ Output file created"
+          echo "Output file content:"
+          cat data/brest_customers.txt
+        else
+          echo "✗ Output file not created"
+          exit 1
+        fi
+    
+    - name: Validate Brest customers filter
+      run: |
+        echo "Validating filter results..."
+        # Проверяем, что в выходном файле есть только покупатели из Бреста
+        if grep -q "Брест" data/brest_customers.txt; then
+          echo "✓ Brest customers found"
+        else
+          echo "✗ No Brest customers in output"
+          exit 1
+        fi
+        
+        # Подсчитываем количество покупателей из Бреста
+        BREST_COUNT=$(grep -c "Брест" data/brest_customers.txt || true)
+        echo "Found $BREST_COUNT customers from Brest"
+        
+        if [ $BREST_COUNT -gt 0 ]; then
+          echo "✓ Filter test passed"
+        else
+          echo "✗ Filter test failed"
+          exit 1
+        fi
+    
+    - name: Check memory leaks (optional)
+      run: |
+        sudo apt-get install -y valgrind
+        echo "Checking for memory leaks..."
+        valgrind --leak-check=full --error-exitcode=1 ./bin/customer_processor || true
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-outputs
+        path: |
+          data/
+          docs/report.md

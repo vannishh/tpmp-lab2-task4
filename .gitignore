@@ -1,0 +1,29 @@
+# Build artifacts
+bin/
+obj/
+*.o
+*.exe
+*.out
+
+# Data files (keep structure but ignore generated files)
+data/*.txt
+!data/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Backup files
+*.bak
+*.backup
